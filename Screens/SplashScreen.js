@@ -1,25 +1,16 @@
 import React from "react"; 
 import { ActivityIndicator } from "react-native";
 import {
-    Dimensions,
-    StyleSheet,
     Text,
     View,
-    TextInput,
-    TouchableOpacity,
-    DrawerLayoutAndroid,
-    ImageBackground,
-    TouchableHighlight,
     Image,
-    ScrollView,
   } from "react-native";
 
-  import DeviceInfo from 'react-native-device-info';
+import DeviceInfo from 'react-native-device-info';
 
 export default function SplashScreen({ navigation, route }) {
    
   
-   
     return (<>
     <View
     style={{
@@ -36,7 +27,7 @@ export default function SplashScreen({ navigation, route }) {
         }}
          />
         <ActivityIndicator size={75} 
-        color={'red'}
+        color={'#000'}
         style={{
             marginTop:"20%"
         }}/>
@@ -54,6 +45,3 @@ export default function SplashScreen({ navigation, route }) {
     </View>
     </>)
 }
-
-const styles = StyleSheet.create({ 
-})

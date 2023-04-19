@@ -11,7 +11,7 @@ import {
   Linking,
   Share
 } from 'react-native';
-// import { BannerAd ,BannerAdSize} from '@react-native-admob/admob';
+import { BannerAd ,BannerAdSize} from '@react-native-admob/admob';
 import UserContext from '../auth/context';
 import DeviceInfo from 'react-native-device-info';
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -71,7 +71,7 @@ const Menu = () => {
                     underlayColor="#DDDDDD">
                     <Image
                       style={{height: 80, width: 80, borderRadius: 20}}
-                      source={{uri: 'https://api.sohag.xyz/banglanatoks/img/logo.png'}}
+                      source={require('../assests/logo.png')}
                     />
                   </TouchableHighlight>
                   <TouchableHighlight
@@ -87,7 +87,17 @@ const Menu = () => {
         </View>
   
         <View style={[styles.container,{height:"70%",width:"100%",borderTopColor:"red",borderTopWidth:4,padding:0,margin:0}]} horizontal={false}>
-          
+        { state?.appData?.ads.is_ads_show && (<><View style={{
+                justifyContent:'center',
+                alignContent:'center',
+                alignItems:'center',
+                backgroundColor:'transparent',
+            }}>
+                <BannerAd
+        size={BannerAdSize.BANNER}
+        unitId={state?.appData?.ads.banner} 
+      />
+            </View></>)}
         <TouchableHighlight
                     style={{
                       padding: 12,
@@ -182,7 +192,17 @@ const Menu = () => {
                     </Text>
                     </View>
                   </TouchableHighlight>
-                  {/* {state.appData.ads.is_ads_show? (<><BannerAd size={BannerAdSize.BANNER} unitId={state.appData.ads.banner} /></>) : (<></>)} */}
+                  { state?.appData?.ads.is_ads_show && (<><View style={{
+                justifyContent:'center',
+                alignContent:'center',
+                alignItems:'center',
+                backgroundColor:'transparent',
+            }}>
+                <BannerAd
+        size={BannerAdSize.BANNER}
+        unitId={state?.appData?.ads.banner} 
+      />
+            </View></>)}
         </View>
       </ScrollView>
       <View style={{

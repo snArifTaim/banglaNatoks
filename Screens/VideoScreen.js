@@ -1,4 +1,4 @@
-import React, { useState,useCallback, useMemo, useRef } from "react";
+import React, { useState, useMemo, useRef } from "react";
 
 import {
     Text,
@@ -9,11 +9,9 @@ import {
     StatusBar,
     TouchableOpacity,
     ScrollView,
-    SafeAreaView,
-    Modal,
+    BackHandler,
 } from "react-native";
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-
 import Icon2 from 'react-native-vector-icons/MaterialIcons';
 import YoutubePlayer from "react-native-youtube-iframe";
 import Orientation from 'react-native-orientation';
@@ -21,62 +19,58 @@ import { useEffect } from "react";
 import { Linking } from "react-native";
 import { Alert } from "react-native";
 import { Share } from "react-native";
-import { ActivityIndicator } from "react-native";
 import { RefreshControl } from "react-native";
-import { SharedElement } from 'react-navigation-shared-element';
 import { ImageBackground } from "react-native";
-
 import BottomSheet, { BottomSheetScrollView } from "@gorhom/bottom-sheet";
-import UserContext from "../auth/context";
-import SkeletonContent from "react-native-skeleton-content-nonexpo";
+import UserContext from "../auth/context"; 
 import RelatedSkeleton from "../skeletons/relatedVideo";
+import Video from 'react-native-video';
+import IntAdsSrz from "../components/IntAds";
+import { BannerAd, BannerAdSize } from "@react-native-admob/admob";
 
+const humanFileSize = (bytes, si = true, dp = 1) => {
+    const thresh = si ? 1000 : 1024;
+
+    if (Math.abs(bytes) < thresh) {
+        return bytes + ' B';
+    }
+
+    const units = si
+        ? ['kB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB']
+        : ['KiB', 'MiB', 'GiB', 'TiB', 'PiB', 'EiB', 'ZiB', 'YiB'];
+    let u = -1;
+    const r = 10 ** dp;
+
+    do {
+        bytes /= thresh;
+        ++u;
+    } while (Math.round(Math.abs(bytes) * r) / r >= thresh && u < units.length - 1);
+
+
+    return bytes.toFixed(dp) + ' ' + units[u];
+}
 
 export default function VideoScreen({ navigation, route }) {
     
   const context = React.useContext(UserContext);
-  const {drawer,state,dispatch} = context;
-
+  const {state} = context;
     const { params } = route;
     if (typeof params == 'undefined') {
         navigation.navigate('Home');
         return null;
-    }
-    const [modalVisible, setModalVisible] = useState(false);
+    } 
     const [statusBar, setstatusBar] = useState(true);
     const [heightPlayer, setheightPlayer] = useState(10);
     const [relatedVideos, setRelatedVideos] = useState([]);
     const [videoSingle, setVideoSingle] = useState([]);
     const [isLoading, setisLoading] = React.useState(true);
     const [isRefresh, setisRefresh] = React.useState(false);
-    const [isvideoReady, setisvideoReady] = React.useState(false);
     const [showBottomSheet, setshowBottomSheet] = React.useState(false);
-    const humanFileSize = (bytes, si = true, dp = 1) => {
-        const thresh = si ? 1000 : 1024;
-
-        if (Math.abs(bytes) < thresh) {
-            return bytes + ' B';
-        }
-
-        const units = si
-            ? ['kB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB']
-            : ['KiB', 'MiB', 'GiB', 'TiB', 'PiB', 'EiB', 'ZiB', 'YiB'];
-        let u = -1;
-        const r = 10 ** dp;
-
-        do {
-            bytes /= thresh;
-            ++u;
-        } while (Math.round(Math.abs(bytes) * r) / r >= thresh && u < units.length - 1);
-
-
-        return bytes.toFixed(dp) + ' ' + units[u];
-    }
+  
     const getReleatedVideos = () => {
         setisRefresh(true);
         fetch('https://test.sohag.tech/api/search?query=bangla+natoks&relatedVideo=' + params.videoId).then(data => data.json()).then(data => {
-            // console.log(data);
-
+            
             setisLoading(false);
             setisRefresh(false);
 
@@ -94,23 +88,23 @@ export default function VideoScreen({ navigation, route }) {
             setisRefresh(false);
             Alert.alert('Error', 'Connection Error!')
         });
-
-
     }
-
     
-  const bottomSheetRef = useRef()
+  const bottomSheetRef = useRef();
 
   // variables
   const snapPoints = useMemo(() => ['25%', '50%','70%'], []);
+ 
+  const goHome = () =>{
+    setTimeout(() => {
+        navigation.navigate('Home');
+    }, 100);
+  }
 
-  // callbacks
-  const handleSheetChanges = useCallback((index) => {
-    console.log('handleSheetChanges', index);
-  }, []);
-
-
-    useEffect(() => { 
+    useEffect(() => {
+        if(navigation.canGoBack() == false){
+            BackHandler.addEventListener("hardwareBackPress", goHome);
+        }
         Orientation.getOrientation((err, orientation) => {
             if (orientation === 'PORTRAIT') {
                 // do something
@@ -119,8 +113,6 @@ export default function VideoScreen({ navigation, route }) {
                 // do something else
                 setheightPlayer(200);
             }
-
-
         });
         Orientation.addOrientationListener((orientation) => {
             if (orientation === 'PORTRAIT') {
@@ -131,46 +123,30 @@ export default function VideoScreen({ navigation, route }) {
                 setheightPlayer(200);
             }
         });
-        getReleatedVideos();
-
-        if(state.appData?.version_mismatch){
+        getReleatedVideos(); 
+        if(state.appData.version_mismatch){
 
             fetch('https://test.sohag.tech/api/video/' + params.videoId).then(data => data.json()).then(data => {
                 if (data.statusCode == 0) {
                     // success
                     setVideoSingle(data.videoInfo);
-    
                 } else {
                     alert('Error');
                 }
             });
         }
-
-
-
         return () => {
+            if(navigation.canGoBack() ==false){
+                BackHandler.removeEventListener("hardwareBackPress", goHome);
+            }
             setRelatedVideos([]);
             setVideoSingle([]);
-
         }
     }, []);
-    useEffect(() => {
-      
-        // bottomSheetRef.current?.close();
-    
-      return () => {
-        
-      }
-    }, [
-         ])
-    
-
+  
     return (<>
-        <SharedElement id={`item.${params.videoId}.photo`}>
-            <>
-                {/* {!isvideoReady && (<>
-         <Image />
-                                </>)} */}
+    <IntAdsSrz />
+       
                 <ImageBackground
                     source={{
                         uri: params.imgSrc,
@@ -181,36 +157,43 @@ export default function VideoScreen({ navigation, route }) {
                         height: heightPlayer
                     }}
                 >
-                    <YoutubePlayer
-                        onReady={() => {
-                            setisvideoReady(true);
-                        }}
-                        height={heightPlayer}
-                        play={true}
-                        onFullScreenChange={bool => {
-                            if (bool) {
-                                // fullscreen
-                                setstatusBar(true);
-                                Orientation.lockToLandscape();
-
-
-                            } else {
-                                // normal
-                                // setstatusBar(false);
-                                Orientation.lockToPortrait();
-                            }
-                        }}
-                        videoId={params.videoId}
-                    />
+                    {params?.is_video_def ? (<>
+                    <Video source={params?.sources_obj}   // Can be a URL or a local file.
+                controls={true} 
+                   style={{ 
+                     width:"100%",
+                     height: heightPlayer
+            
+                   }} />
+                   </>) : (<>
+                   <YoutubePlayer
+                    webViewProps={{
+                      renderToHardwareTextureAndroid: true,
+                    }}
+                    onReady={() => { }}
+                    height={heightPlayer}
+                    play={true}
+                    onFullScreenChange={bool => {
+                                              if (bool) {
+                                                  // fullscreen
+                                                  setstatusBar(true);
+                                                  Orientation.lockToLandscape();
+                  
+                  
+                                              } else {
+                                                  // normal
+                                                  // setstatusBar(false);
+                                                  Orientation.lockToPortrait();
+                                              }
+                                          }}
+                                          videoId={params.videoId}
+                                      />
+                                </>)}
+                  
                 </ImageBackground>
-
-
-            </>
-        </SharedElement>
-        {isLoading  ? (<> 
-        <RelatedSkeleton/>
-
-        </>) : (<>
+             
+        {isLoading  ? (<><RelatedSkeleton/></>) : (
+            <>
             <ScrollView
 
                 refreshControl={
@@ -222,6 +205,7 @@ export default function VideoScreen({ navigation, route }) {
                     />
                 }
             >
+              
                 <View style={{
                     position: 'relative'
                 }}>
@@ -230,6 +214,21 @@ export default function VideoScreen({ navigation, route }) {
 
 
                         <View style={styles.container}>
+                        { state?.appData?.ads.is_ads_show && (<>
+            <View style={{
+                justifyContent:'center',
+                alignContent:'center',
+                alignItems:'center',
+                backgroundColor:'transparent',
+                marginTop:10,
+            }}>
+                <BannerAd
+        size={BannerAdSize.BANNER}
+        unitId={state?.appData?.ads.banner} 
+      />
+      </View>
+      </>)}
+
                             <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
                                 <View style={styles.viewsContainer}>
                                     <Icon style={{ color: '#c3c3c3', marginRight: 4 }} name={'eye'} size={20} />
@@ -250,7 +249,7 @@ export default function VideoScreen({ navigation, route }) {
                                     <Icon style={styles.btnicn} name={'share'} size={20} />
                                     <Text style={styles.btntxt}>Share</Text>
                                 </TouchableOpacity>
-                                {state.appData?.version_mismatch && (<>
+                                {state.appData?.version_mismatch && typeof videoSingle.title !== 'undefined' && (<>
                                 
                                     <TouchableOpacity style={styles.btngrp}
                                     onPress={() => { 
@@ -264,7 +263,22 @@ export default function VideoScreen({ navigation, route }) {
 
                             </View>
 
-                        </View>
+                            { state?.appData?.ads.is_ads_show && (<>
+            <View style={{
+                justifyContent:'center',
+                alignContent:'center',
+                alignItems:'center',
+                backgroundColor:'transparent',
+                marginTop:10,
+            }}>
+                <BannerAd
+        size={BannerAdSize.BANNER}
+        unitId={state?.appData?.ads.banner} 
+      />
+      </View>
+      </>)}
+       </View>
+  
                     </View>
                     <View>
 
@@ -273,19 +287,21 @@ export default function VideoScreen({ navigation, route }) {
                                 return null;
                             }
                             return (<View style={styles.product} key={data.videoId}>
-                                <TouchableOpacity onPress={() => navigation.replace('PlayVideos', data)}>
-                                    <View style={{ position: 'relative' }}>
+                                <TouchableOpacity onPress={() => {
+                                    setRelatedVideos([]);
+                                    setVideoSingle([]);
+                                    navigation.replace('PlayVideos', data);
+
+                                    }}>
+                                    <View style={{ position: 'relative' }}> 
                                         <Image style={styles.images}
                                             source={
-                                                {
-                                                    uri: data.imgSrc
+                                                { uri: data.imgSrc
                                                 }
                                             } />
                                         <View style={styles.viewsContainer}>
                                             <Icon style={{ color: '#656565', marginRight: 4 }} name={'eye'} size={13} />
                                             <Text style={{ color: '#656565' }}>{data.views}</Text>
-                                            {/* <View style={{ backgroundColor: '#656565', width: 5, height: 5, borderRadius: 10, marginHorizontal: 10 }} /> */}
-                                            {/* <Text style={{ color: '#656565', fontSize: 12 }}>3 Oct 2022</Text> */}
                                         </View>
                                     </View>
                                     <View>
@@ -304,8 +320,7 @@ export default function VideoScreen({ navigation, route }) {
                 justifyContent:'center',
                 alignContent:'center',
                 alignItems:'center'
-            }]}  onPress={() => {
-                // setModalVisible(true)
+            }]}  onPress={() => { 
                 
                 setshowBottomSheet(true);
                 bottomSheetRef.current?.expand();
@@ -313,54 +328,13 @@ export default function VideoScreen({ navigation, route }) {
                 <Icon name={'download'} size={30} color={'#fff'} />
             </TouchableOpacity>
         </>)}
-
-
-
-        <Modal transparent={true}
-            visible={modalVisible}
-            animationType="slide"
-            onRequestClose={() => setModalVisible(!modalVisible)}
-            style={{
-                justifyContent: 'center',
-                alignItems: 'center',
-                margin: 0,
-                width: 300,
-                height: 300
-            }}>
-            <View style={{
-                flex: 1,
-                flexDirection: 'column',
-                justifyContent: 'center',
-                alignItems: 'center',
-                backgroundColor: "#000000c9"
-            }}>
-                <View style={{
-                    width: "80%",
-                    height: "80%",
-                    backgroundColor: "#fff",
-                    borderRadius: 10,
-                    padding: 10
-                }}>
-                    <TouchableOpacity
-                        onPress={() => setModalVisible(false)}
-                        style={{ position: "absolute", top: -13, right: -9, backgroundColor: 'red', color: "#ffff", padding: 5, borderRadius: 10, zIndex: 99 }}>
-                        <Icon2 name="close" size={24} style={{ color: "#fff" }} /></TouchableOpacity>
-                    <ScrollView>
-                        <View style={{ flex: 1, justifyContent: 'center', alignContent: 'center', alignItems: 'center', alignSelf: 'center', marginTop: 15 }}>
-                          
-                        </View>
-                    </ScrollView>
-                </View>
-            </View>
-        </Modal>
-
-        {typeof videoSingle.title !== 'undefined' && (<><BottomSheet
+        {typeof videoSingle.title !== 'undefined' && (<>
+        <BottomSheet
         ref={bottomSheetRef}
         enableOverDrag={false}
         index={1}
         enablePanDownToClose={true}
         snapPoints={snapPoints}
-        onChange={handleSheetChanges}
      style={[{
      }, showBottomSheet ? {} : {
         display:'none'}]} >
@@ -368,8 +342,22 @@ export default function VideoScreen({ navigation, route }) {
             flex: 1,
             alignItems: 'center',
         }}>
-          {/* <Text>Download</Text> */}
           <BottomSheetScrollView >
+          {state?.appData?.ads.is_ads_show && (<>
+            <View style={{
+                justifyContent:'center',
+                alignContent:'center',
+                alignItems:'center',
+                backgroundColor:'transparent',
+                marginTop:10,
+            }}>
+                <BannerAd
+        size={BannerAdSize.BANNER}
+        unitId={state?.appData?.ads.banner} 
+      />
+      </View>
+      </>)}
+
           {typeof videoSingle.downloadInfoList !== 'undefined' && Object(videoSingle.downloadInfoList).map((data, nindex) => {
  
 
@@ -377,7 +365,7 @@ return (
     <TouchableOpacity style={{ width: "100%" }} key={nindex} onPress={() => {
         Alert.alert(
             'Download Through Browser?',
-            'For download our app will use your browser! really want to continue?',
+            'For download, our app will use your browser! \nreally want to continue?',
 
             [
                 {
@@ -410,6 +398,21 @@ return (
     </TouchableOpacity>);
 
 })}
+{state?.appData?.ads.is_ads_show && (<>
+            <View style={{
+                justifyContent:'center',
+                alignContent:'center',
+                alignItems:'center',
+                backgroundColor:'transparent',
+                marginBottom:10,
+            }}>
+                <BannerAd
+        size={BannerAdSize.BANNER}
+        unitId={state?.appData?.ads.banner} 
+      />
+      </View>
+      </>)}
+
           </BottomSheetScrollView >
         </View>
       </BottomSheet></>)}

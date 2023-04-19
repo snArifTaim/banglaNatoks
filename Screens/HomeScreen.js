@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
     StatusBar,
     StyleSheet,
@@ -7,25 +7,24 @@ import {
     TouchableOpacity,
     Image,
     ScrollView,
+    Alert,
+    RefreshControl
 } from "react-native";
+import { BannerAd, BannerAdSize, TestIds } from '@react-native-admob/admob';
+
 import Slider from "../components/slider";
-import Icon from 'react-native-vector-icons/Octicons';
-import { Alert } from "react-native";
-import { RefreshControl } from "react-native";
-import { ActivityIndicator } from "react-native";
-import { SharedElement } from 'react-navigation-shared-element';
-import SkeletonContent from 'react-native-skeleton-content-nonexpo';
+import Icon from 'react-native-vector-icons/Ionicons';
 import VideoSkeleton from "../skeletons/video_section";
-import { SafeAreaView } from "react-native";
 import CateSection from "../components/Categories";
-
+import UserContext from "../auth/context";
+import IntAdsSrz from "../components/IntAds";
 export default function HomeScreen({ navigation, props }) {
-
+    const context = React.useContext(UserContext);
+    const {drawer,state,dispatch} = context; 
     const [videos, setVideos] = useState([]);
-
     const [isLoading, setisLoading] = React.useState(true);
     const [isRefresh, setisRefresh] = React.useState(false);
-
+    const [isShowAds, setisShowAds] = React.useState(false);
     const  getVideos = () =>{
         setisRefresh(true);
         fetch('https://test.sohag.tech/api/section/home').then(data => data.json()).then(data =>{
@@ -33,7 +32,6 @@ export default function HomeScreen({ navigation, props }) {
             setisRefresh(false);
             if(data.code == 200){
                 // success
-                
             setVideos(data.data);
 
             }else{
@@ -49,16 +47,13 @@ export default function HomeScreen({ navigation, props }) {
     }
     useEffect(() => {
         getVideos();
-        
-    
-      return () => {
-        
-      }
+      return () => {}
     }, []);
 
     return (
         <>
             <StatusBar hidden />
+            <IntAdsSrz />
             <ScrollView
             refreshControl={
                 <RefreshControl
@@ -85,9 +80,9 @@ export default function HomeScreen({ navigation, props }) {
 
         {Object(videos).map(data => { 
 
-                    return (<>
+                    return (<View key={data.id}>
                     
-                    <View style={{ marginTop: 20 }} key={data.id}>
+                    <View style={{ marginTop: 20 }} >
                     <Text style={{
                         color: '#547AFF',
                         fontSize: 17,
@@ -97,20 +92,29 @@ export default function HomeScreen({ navigation, props }) {
                     }}>{data.section_title}</Text>
                     <View style={{ backgroundColor: '#547AFF', padding: 3, width: '90%', alignSelf: 'center', borderRadius: 10 }} />
                 </View>
+                { state?.appData?.ads.is_ads_show && (<><View style={{
+                justifyContent:'center',
+                alignContent:'center',
+                alignItems:'center',
+                backgroundColor:'transparent',
+                marginTop:5,
+            }}>
+                <BannerAd
+        size={BannerAdSize.BANNER}
+        unitId={state?.appData?.ads.banner} 
+      />
+            </View></>)}
+
                 <View style={styles.container}>
                 {Object(data.videos).map(data =>{
                     return (
                         <View style={styles.product} key={data.videoId}>
                                 <TouchableOpacity onPress={() => navigation.navigate('PlayVideos',data )}>
                                     <View style={{ position: 'relative' }}>
-                                    <SharedElement id={`item.${data.videoId}.photo`}>
                                     <Image style={styles.images}
                                             source={{
                                                 uri: data.imgSrc
                                             }} />
-                                            </SharedElement>
-        
-                                       
                                         <View style={styles.viewsContainer}>
                                             <Icon style={{ color: '#fff', marginRight: 4 }} name={'eye'} size={13} />
                                             <Text style={styles.viewstxt}>{data.views}</Text>
@@ -122,10 +126,8 @@ export default function HomeScreen({ navigation, props }) {
                                         </View>
         
                                     </View>
-                                    <View>
-                                    <SharedElement id={`item.${data.videoId}.title`}>
+                                    <View> 
                                         <Text style={styles.productTXT}>{data.title}</Text>
-                                        </SharedElement>
                                     </View>
                                 </TouchableOpacity>
                             </View>
@@ -134,7 +136,19 @@ export default function HomeScreen({ navigation, props }) {
                 })}
                 
                 </View>
-                    </>
+                { state?.appData?.ads.is_ads_show && (<><View style={{
+                justifyContent:'center',
+                alignContent:'center',
+                alignItems:'center',
+                backgroundColor:'transparent',
+            }}>
+                <BannerAd
+        size={BannerAdSize.BANNER}
+        unitId={state?.appData?.ads.banner} 
+      />
+            </View></>)}
+            
+                    </View>
                     );
                 })}
                 </>)}
@@ -142,7 +156,40 @@ export default function HomeScreen({ navigation, props }) {
                      
             </View>
             
-            </ScrollView>
+            </ScrollView> 
+            {!isShowAds && state?.appData?.ads.is_ads_show ? (<><View style={{
+                position:'absolute',
+                justifyContent:'center',
+                alignContent:'center',
+                alignItems:'center',
+                marginBottom:5,
+                backgroundColor:'transparent',
+                bottom:1,
+                left:0,
+                right:1
+            }}>
+                <TouchableOpacity style={{
+                    position:'absolute',
+                    top:-17,
+                    right:2,
+                    zIndex:99,
+                    backgroundColor:'#fff',
+                    borderRadius:100
+                }} 
+                onPress={() => {
+                    setisShowAds(true);
+                }}>
+                    <Icon name="close-circle" size={35} color="#000"/>
+                </TouchableOpacity>
+      <BannerAd
+        size={BannerAdSize.BANNER}
+        unitId={state?.appData?.ads.banner}
+        onAdFailedToLoad={(error) => console.error(error)}
+        // ref={bannerRef}
+      />
+            </View></>) : (<></>)}
+            
+            
         </>
 
     );

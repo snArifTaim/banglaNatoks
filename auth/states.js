@@ -8,6 +8,6 @@ const initialState = {
       bannerId: '',
       interID : '',
       news: [],
-      initAd : false,
+      initAd : '',
     };
     export default  initialState;

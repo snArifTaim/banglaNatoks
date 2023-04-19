@@ -1,6 +1,3 @@
-import { useNavigation } from '@react-navigation/native';
-import { Text } from 'react-native';
- 
 import SkeletonContent from 'react-native-skeleton-content-nonexpo';
 const SearchSkeleton = () => {  
      const videoBox = {

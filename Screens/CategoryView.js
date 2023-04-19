@@ -1,5 +1,4 @@
-import React, { useState,useEffect } from "react";
-import { ActivityIndicator, SafeAreaView } from "react-native";
+import React from "react";
 import { Alert } from "react-native";
 import { RefreshControl } from "react-native";
 import { Dimensions } from "react-native";
@@ -9,21 +8,23 @@ import {
     StyleSheet,
     TouchableOpacity,
     Image,
-    ScrollView, TextInput,
-    Keyboard
+    ScrollView,
 } from "react-native";
 
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-
-import Ionicons from 'react-native-vector-icons/Ionicons';
-import { SharedElement } from 'react-navigation-shared-element';
+  
+import { BannerAd ,BannerAdSize} from '@react-native-admob/admob';
 import SearchSkeleton from "../skeletons/searchVideos";
+import UserContext from "../auth/context";
+import IntAdsSrz from "../components/IntAds";
  
 
 
 export default function CategoryView({ navigation, route }) {
     const { params } = route;
     const {kw, title} = params;   
+    const context = React.useContext(UserContext);
+    const {drawer,state,dispatch} = context;
     const [isLoading, setisLoading] = React.useState(true);
     const [isRefresh, setisRefresh] = React.useState(false); 
 
@@ -91,21 +92,33 @@ export default function CategoryView({ navigation, route }) {
                 />
             }
         >
+            <IntAdsSrz />
             <View style={styles.container}>
+            { state?.appData?.ads.is_ads_show && (<>
+            <View style={{
+                justifyContent:'center',
+                alignContent:'center',
+                alignItems:'center',
+                backgroundColor:'transparent',
+            }}>
+                <BannerAd
+        size={BannerAdSize.BANNER}
+        unitId={state?.appData?.ads.banner} 
+      />
+      </View>
+      </>)}
 
-                {Object(searchResults).map(data => {
+                {Object(searchResults).map((data , index) => {
                     // console.log(data)
                     return (<View style={styles.product} key={data.videoId}>
 
                         <TouchableOpacity onPress={() => navigation.navigate('PlayVideos', { ...data, params: params })}>
                             <View style={{ position: 'relative' }}>
-
-                                <SharedElement id={`item.${data.videoId}.photo`}>
+ 
                                     <Image style={styles.images}
                                         source={{
                                             uri: data.imgSrc
                                         }} />
-                                </SharedElement>
                                 <Text style={styles.ntktxt}>{data.duration}</Text>
                             </View>
                         </TouchableOpacity>
@@ -126,7 +139,20 @@ export default function CategoryView({ navigation, route }) {
 
                 })}
 
-
+{ state?.appData?.ads.is_ads_show && (<>
+            <View style={{
+                justifyContent:'center',
+                alignContent:'center',
+                alignItems:'center',
+                backgroundColor:'transparent',
+                marginTop:10,
+            }}>
+                <BannerAd
+        size={BannerAdSize.BANNER}
+        unitId={state?.appData?.ads.banner} 
+      />
+      </View>
+      </>)}
             </View>
         </ScrollView>
     )

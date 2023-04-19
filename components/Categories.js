@@ -1,20 +1,13 @@
 import { useNavigation } from '@react-navigation/native';
 import React, {useEffect} from 'react';
 import {
-  ImageBackground, 
-  ScrollView,
-  Image,
-  StyleSheet,
   Text,
   TouchableOpacity,
-  View,
   SafeAreaView,
   FlatList
 } from 'react-native'; 
-import UserContext from '../auth/context';  
 import SkeletonContent from 'react-native-skeleton-content-nonexpo';
 const CateSection = () => {
-  const context = React.useContext(UserContext);
   const [categories, setcategories] = React.useState([]);
   const [isLoading, setisLoading] = React.useState(true);
   const navigation =  useNavigation();
@@ -178,18 +171,4 @@ const CateSection = () => {
 
       </>);
 }
-const styles = StyleSheet.create({
-    container: {
-      padding: 10,
-    },
-    navigationContainer: {
-      backgroundColor: '#ffff',
-    },
-    paragraph: {
-      padding: 16,
-      fontSize: 15,
-      textAlign: 'center',
-    },
-  });
-  
 export default CateSection;

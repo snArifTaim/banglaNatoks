@@ -1,3 +1,4 @@
+import { BannerAd, BannerAdSize } from "@react-native-admob/admob";
 import React from "react";
 import { Alert } from "react-native";
 import {
@@ -11,8 +12,11 @@ import {
 } from "react-native";
 
 import Icon from 'react-native-vector-icons/Ionicons';
+import UserContext from "../auth/context";
 
 export default function SearchScreen({ navigation, props }) { 
+    const context = React.useContext(UserContext);
+    const {drawer,state,dispatch} = context;
     const [query, setQuery] = React.useState('');
     const [relatedkw, setkws] = React.useState([]);
     React.useEffect(() => {
@@ -39,6 +43,20 @@ export default function SearchScreen({ navigation, props }) {
     return (
     <ScrollView>
         <StatusBar hidden/>
+        { state?.appData?.ads.is_ads_show && (<>
+            <View style={{
+                justifyContent:'center',
+                alignContent:'center',
+                alignItems:'center',
+                backgroundColor:'transparent',
+                marginTop:10,
+            }}>
+                <BannerAd
+        size={BannerAdSize.BANNER}
+        unitId={state?.appData?.ads.banner} 
+      />
+      </View>
+      </>)}
         <View style={styles.container}>
             <TextInput
                 style={styles.input}
@@ -111,9 +129,19 @@ export default function SearchScreen({ navigation, props }) {
         </View>
         </>)}
 
-        <View style={styles.ads}>
-            <Text style={styles.adstxt}>ADS</Text>
-        </View>
+        { state?.appData?.ads.is_ads_show && (<>
+            <View style={{
+                justifyContent:'center',
+                alignContent:'center',
+                alignItems:'center',
+                backgroundColor:'transparent',
+            }}>
+                <BannerAd
+        size={BannerAdSize.BANNER}
+        unitId={state?.appData?.ads.banner} 
+      />
+      </View>
+      </>)}
     </ScrollView>
     );
 };

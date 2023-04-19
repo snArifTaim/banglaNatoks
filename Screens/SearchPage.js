@@ -1,5 +1,5 @@
 import React, { useState,useEffect } from "react";
-import { ActivityIndicator, SafeAreaView } from "react-native";
+import {  SafeAreaView } from "react-native";
 import { Alert } from "react-native";
 import { RefreshControl } from "react-native";
 import { Dimensions } from "react-native";
@@ -12,17 +12,16 @@ import {
     ScrollView, TextInput,
     Keyboard
 } from "react-native";
-
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import { SharedElement } from 'react-navigation-shared-element';
 import SearchSkeleton from "../skeletons/searchVideos";
+import IntAdsSrz from "../components/IntAds";
+import { BannerAd, BannerAdSize } from "@react-native-admob/admob";
+import UserContext from "../auth/context";
 const TopBox = (props) => {
     const [queryX, setqueryX] = useState(props.search);
     const [relatedkw, setkws] = React.useState([]);
     const [showSuggest, setshowSuggest] = React.useState(false);
-    
     const textInput = React.useRef();
     const getReleatedkw = (kw) =>{
         if(kw ==''){
@@ -170,6 +169,8 @@ const TopBox = (props) => {
 
 export default function SearchpageScreen({ navigation, route }) {
     const { params } = route;
+    const context = React.useContext(UserContext);
+    const {drawer,state,dispatch} = context;
 
     const [queryX, setQueryX] = React.useState(params);
     const [isLoading, setisLoading] = React.useState(true);
@@ -241,21 +242,32 @@ export default function SearchpageScreen({ navigation, route }) {
                 />
             }
         >
+            <IntAdsSrz />
+            { state?.appData?.ads.is_ads_show && (<>
+            <View style={{
+                justifyContent:'center',
+                alignContent:'center',
+                alignItems:'center',
+                backgroundColor:'transparent',
+                marginTop:10,
+            }}>
+                <BannerAd
+        size={BannerAdSize.BANNER}
+        unitId={state?.appData?.ads.banner} 
+      />
+      </View>
+      </>)}
             <View style={styles.container}>
 
-                {Object(searchResults).map(data => {
-                    // console.log(data)
+                {Object(searchResults).map(data => { 
                     return (<View style={styles.product} key={data.videoId}>
 
                         <TouchableOpacity onPress={() => navigation.navigate('PlayVideos', { ...data, params: params })}>
                             <View style={{ position: 'relative' }}>
-
-                                <SharedElement id={`item.${data.videoId}.photo`}>
                                     <Image style={styles.images}
                                         source={{
                                             uri: data.imgSrc
                                         }} />
-                                </SharedElement>
                                 <Text style={styles.ntktxt}>{data.duration}</Text>
                             </View>
                         </TouchableOpacity>
@@ -278,6 +290,21 @@ export default function SearchpageScreen({ navigation, route }) {
 
 
             </View>
+            { state?.appData?.ads.is_ads_show && (<>
+            <View style={{
+                justifyContent:'center',
+                alignContent:'center',
+                alignItems:'center',
+                backgroundColor:'transparent',
+                marginBottom:17,
+            }}>
+                <BannerAd
+        size={BannerAdSize.BANNER}
+        unitId={state?.appData?.ads.banner} 
+      />
+      </View>
+      </>)}
+
         </ScrollView>
     )
 }

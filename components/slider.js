@@ -1,12 +1,10 @@
 import { useNavigation } from '@react-navigation/native'
 import React, { useEffect , useState } from 'react'
-import { ActivityIndicator } from 'react-native'
 import { TouchableOpacity } from 'react-native'
 import { Text, View, Image, Dimensions } from 'react-native'
 import SkeletonContent from 'react-native-skeleton-content-nonexpo';
 import Swiper from 'react-native-swiper'
 const { width } = Dimensions.get('window');
-
 const styles = {
   container: {
     height: 250,
@@ -52,17 +50,13 @@ export default  Slider = () => {
     
   
     return () => {
-      setVideos([]);
+      // setVideos([]);
     }
   }, [])
   if(isLoading){
-    return (<>
-    {/* <ActivityIndicator size={'large'}/> */}
+    return (<> 
     <SkeletonContent
     isLoading={true}
-    
-    // boneColor={"#29292a"}
-    // highlightColor="#333333"
     layout={[
       {  width: width*0.98, height: 250, margin: 10 ,
         display: 'flex',
@@ -70,7 +64,6 @@ export default  Slider = () => {
         alignItems: 'center',},
         {
           width:'100%',
-          // height: 30
           display:'flex',
           flexDirection:'row',
           justifyContent:'space-between',
@@ -86,8 +79,6 @@ export default  Slider = () => {
                 flexDirection:'row',
                 justifyContent:'space-between',
                 marginRight:5,
-                
-                // height:25
                 children: [
                   {
                     width:20,
@@ -109,7 +100,6 @@ export default  Slider = () => {
 
           ]
         }
-      // { key: 'someOtherId', width: width, height: 250, marginBottom: 6 }
     ]}
     />
     </>);

@@ -1,32 +1,20 @@
 import React,{useState,useEffect,useRef,useReducer} from 'react';
-import { NavigationContainer } from "@react-navigation/native";
-import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import { NavigationContainer } from "@react-navigation/native"; 
 import HomeScreen from "./Screens/HomeScreen";
 import SearchScreen from "./Screens/Search";
-import NotificationScreen from "./Screens/Notification";
 import VideoScreen from "./Screens/VideoScreen";
-import SearchpageScreen from "./Screens/SearchPage";
-
-import DeviceInfo from 'react-native-device-info';
-
+import SearchpageScreen from "./Screens/SearchPage"; 
+import DeviceInfo from 'react-native-device-info'; 
 import UserContext from './auth/context'; 
 import initialState from './auth/states'; 
 import SplashScreen from 'react-native-splash-screen'
-
-
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   Dimensions,
-  StyleSheet,
-  Text,
-  View,
+  StyleSheet, 
   TextInput,
   TouchableOpacity,
-  DrawerLayoutAndroid,
-  ImageBackground,
-  TouchableHighlight,
-  Image,
-  ScrollView,
+  DrawerLayoutAndroid, 
   BackHandler,
   Linking,
   Alert,
@@ -34,13 +22,26 @@ import {
 
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
- 
-
 import { createSharedElementStackNavigator } from 'react-navigation-shared-element';
 import Menu from './components/MenuDrawer';
 import SplashScreenX from './Screens/SplashScreen';
 import CategoryView from './Screens/CategoryView';
+import VideoScreen2 from './Screens/VideoScreen2';
 
+const config = {
+  screens: {
+    CategoryView: {
+      path: 'category/:kw/:title',
+    },
+    PlayVideos2: {
+      path:'link/:videoId'},
+  },
+};
+
+const linking = {
+  prefixes: ['bngntk://'],
+  config,
+};
 
 const Stack = createSharedElementStackNavigator();
 
@@ -60,11 +61,8 @@ function TopBox() {
 export default function app() {
 
   const drawer = useRef(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isInternet, setisInternet] = useState(true);
-  
-  const [isAppReady, setappready] = useState(false);
-  
+  const [isLoading, setIsLoading] = useState(true); 
+    
 
   const reducer = (state, action) => {
     switch (action.type) {
@@ -86,6 +84,8 @@ export default function app() {
             return { ...state, bannerId: action.payload };
         case 'set_news':
           return { ...state, news: action.payload };
+        case 'set_ads_time':
+          return { ...state, initAd: action.payload };
       default: 
     }
   }
@@ -115,8 +115,7 @@ export default function app() {
             );
           }
         }); 
-
-
+ 
         // notice control
         AsyncStorage.getItem('notice').then(idX => {
           if (idX == null) {
@@ -296,8 +295,8 @@ export default function app() {
 
   return (
     
-    <UserContext.Provider value={datas}>
-      <NavigationContainer>
+    <UserContext.Provider value={datas} >
+      <NavigationContainer linking={linking}>
          <DrawerLayoutAndroid
       drawerBackgroundColor='#fff'
       ref={drawer}
@@ -334,8 +333,7 @@ export default function app() {
                 </TouchableOpacity>)
               },
             })}
-          />
-          <Stack.Screen name="Notifications" component={NotificationScreen} />
+          /> 
           <Stack.Screen name="Searches" component={SearchScreen}
             options={{
               title: 'Search',
@@ -359,22 +357,20 @@ export default function app() {
 
           />
           <Stack.Screen name="PlayVideos" component={VideoScreen}
-            options={{
-
-              // animation: 'none',
-            }} 
-            
-          sharedElements={(route, otherRoute, showing) => {
-            const { params } = route;
-            return [
-              {
-                id: `item.${params.videoId}.photo`,
-                animation: 'move',
-                resize: 'clip',
-              },
-            ]; 
-          }}
+          
+            options={{ 
+              animationEnabled: false,
+            }}  
           />
+
+          
+<Stack.Screen name="PlayVideos2" component={VideoScreen2}
+          
+          options={{ 
+            animationEnabled: false,
+          }}  
+        />
+
           <Stack.Screen name="Searchpage" component={SearchpageScreen}
             style={{ marginRight: -20 }}
             options={{
